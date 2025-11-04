@@ -40,8 +40,8 @@ Porównanie warstw `OT_PT` z lat 2014 i 2020, wykrycie zmian klas pokrycia teren
 
 | Narzędzie | Wersja |
 |---------|--------|
-| **ArcGIS Pro** | 2.9+ (z modułem ArcPy) |
-| **Python** | 3.9+ (wbudowany w ArcGIS Pro) |
+| **ArcGIS Pro** | 3.5.2 (z modułem ArcPy) |
+| **Python** | 3.11.11 (wbudowany w ArcGIS Pro) |
 | **Biblioteki** | `arcpy`, `matplotlib`, `os`, `shutil` |
 
 > `matplotlib` musi być zainstalowany w środowisku Pythona ArcGIS Pro.
