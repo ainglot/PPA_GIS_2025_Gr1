@@ -1,6 +1,8 @@
 import arcpy
 import math
 from typing import List, Tuple
+from collections import defaultdict
+import numpy as np
 
 
 # === USTAWIENIA ŚRODOWISKA ===
@@ -91,11 +93,82 @@ with open('data.txt', 'r') as f:
             x, y, z = map(float, line.split())
             points.append([x+470856, y+741111, z])
 
-print(points[:50])
+# print(points[:50])
 
-nowa_warstwa = "Silos02"
-arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "ENABLED", warstwa_punktowa)
-arcpy.management.AddField(nowa_warstwa, "wsp_z", "FLOAT")
-wstawianie_wspolrzednych(nowa_warstwa, points, "wsp_z")
+# nowa_warstwa = "Silos02"
+# arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "ENABLED", warstwa_punktowa)
+# arcpy.management.AddField(nowa_warstwa, "wsp_z", "FLOAT")
+# wstawianie_wspolrzednych(nowa_warstwa, points, "wsp_z")
+
+
+from collections import defaultdict
+import numpy as np
+
+# ------------------- ROZWIĄZANIE -------------------
+
+# 1. Znajdź minimalne Z
+z_values = [p[2] for p in points]
+z_min = min(z_values)
+z_max = max(z_values)
+
+print(f"Z od {z_min:.3f} do {z_max:.3f} m")
+
+# 2. Grupowanie punktów w przedziały co 2 m
+interval = 2.0
+
+# Słownik: klucz = dolna granica przedziału (np. -2.0, 0.0, 2.0, ...)
+layers = defaultdict(list)
+
+# for x, y, z in points:
+#     # Oblicz dolną granicę przedziału, do którego należy z
+#     layer_key = (z // interval) * interval    # dla z >= 0
+#     if z < 0:
+#         layer_key = ((z // interval) - 1) * interval if z % interval != 0 else (z // interval) * interval
+    
+#     layers[layer_key].append([x, y, z])
+
+# Alternatywnie – bardziej czytelne i uniwersalne (działa dla dowolnych z):
+layers = defaultdict(list)
+for x, y, z in points:
+    layer_key = interval * np.floor(z / interval)   # to jest najprostsze i zawsze działa poprawnie
+    layers[layer_key].append([x, y, z])
+
+# 3. Oblicz średnie dla każdej warstwy
+result = []
+
+for z_bottom in sorted(layers.keys()):
+    pts_in_layer = layers[z_bottom]
+    xs = [p[0] for p in pts_in_layer]
+    ys = [p[1] for p in pts_in_layer]
+    
+    avg_x = sum(xs) / len(xs)
+    avg_y = sum(ys) / len(ys)
+    avg_z = (z_bottom + z_bottom + interval) / 2   # środek przedziału (opcjonalnie)
+    count = len(pts_in_layer)
+    
+    result.append({
+        'z_from': z_bottom,
+        'z_to':   z_bottom + interval,
+        'z_mid':  avg_z,
+        'avg_x':  avg_x,
+        'avg_y':  avg_y,
+        'count':  count,
+        'points': pts_in_layer
+    })
+
+# 4. Wyświetl wyniki
+print("\nŚrednie współrzędne co 2 m wysokości:")
+print("Z od-do      |   średnie X   |   średnie Y   | liczba punktów")
+print("-" * 60)
+for r in result:
+    print(f"{r['z_from']:6.2f}–{r['z_to']:6.2f} | {r['avg_x']:12.4f} | {r['avg_y']:12.4f} | {r['count']:6d}")
+
+# Jeśli chcesz tylko listę [avg_x, avg_y, z_mid]
+average_points = [[r['avg_x'], r['avg_y'], r['z_mid']] for r in result]
+print("\nLista średnich punktów:", average_points)
+
+
+
+
 
 print("KONIEC")
