@@ -1,4 +1,6 @@
 import arcpy
+import math
+from typing import List, Tuple
 
 
 # === USTAWIENIA ŚRODOWISKA ===
@@ -26,29 +28,19 @@ def wstawianie_wspolrzednych(warstwa, lista_wsp):
             cursor.insertRow(wsp)
 
 # === WYWOŁYWANIE FUNKCJI ===
-lista_wybranych = odczytywanie_wspolrzednych(warstwa_punktowa)[:150]
-print(lista_wybranych)
 
-### Tworzenie pustej warstwy
-nowa_warstwa = "GDA2020_OT_OIPR_P_150pierwszych"
-arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_punktowa)
-wstawianie_wspolrzednych(nowa_warstwa, lista_wybranych)
-# aktualizowanie_wspolrzednych(warstwa_punktowa)
+# ### Tworzenie pustej warstwy
+# lista_wybranych = odczytywanie_wspolrzednych(warstwa_punktowa)[:150]
+# print(lista_wybranych)
+# nowa_warstwa = "GDA2020_OT_OIPR_P_150pierwszych"
+# arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_punktowa)
+# wstawianie_wspolrzednych(nowa_warstwa, lista_wybranych)
+# # aktualizowanie_wspolrzednych(warstwa_punktowa)
 
 ## wybierzmy X punktów najbliższych do średniej wartości X i Y z zbioru punktów
 
-import math
-from typing import List, Tuple
-
-# Twoja lista współrzędnych (przykład – wstaw tutaj całą swoją listę)
-coordinates = [
-    (465499.4900000002, 720786.8200000003),
-    (464101.58999999985, 721880.6099999994),
-    # ... reszta punktów ...
-    # (x, y),
-]
-
 # Krok 1: Obliczenie środka (średnich współrzędnych)
+coordinates = odczytywanie_wspolrzednych(warstwa_punktowa)
 n = len(coordinates)
 x_mean = sum(x for x, y in coordinates) / n
 y_mean = sum(y for x, y in coordinates) / n
@@ -71,16 +63,13 @@ points_with_dist.sort(key=lambda p: p[2])
 k = 150  # zmień na ile potrzebujesz
 nearest_points = points_with_dist[:k]
 
-# Jeśli chcesz tylko same współrzędne (bez odległości):
-nearest_coordinates = [(x, y) for x, y, dist in nearest_points]
+# # Jeśli chcesz tylko same współrzędne (bez odległości):
+# nearest_coordinates = [(x, y) for x, y, dist in nearest_points]
 
 # Opcjonalnie: wypisz wyniki z odległościami
 print(f"\n{k} punktów najbliższych do środka:")
 for i, (x, y, dist) in enumerate(nearest_points, 1):
     print(f"{i:3}. ({x:.2f}, {y:.2f}) → odległość: {dist:.2f} m")
 
-# Jeśli chcesz zapisać tylko same współrzędne najbliższych punktów:
-print("\nTylko współrzędne 150 najbliższych:")
-print(nearest_coordinates)
 
 print("KONIEC")
