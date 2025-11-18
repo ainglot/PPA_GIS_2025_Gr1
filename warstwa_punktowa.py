@@ -23,9 +23,12 @@ def aktualizowanie_wspolrzednych(warstwa):
             cursor.updateRow(row)
 
 def wstawianie_wspolrzednych(warstwa, lista_wsp, field):
-    with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y', field]) as cursor:
+    with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y', 'SHAPE@Z', field]) as cursor:
         for wsp in lista_wsp:
-            cursor.insertRow(wsp)
+            X = wsp[0]
+            Y = wsp[1]
+            Z = wsp[2]
+            cursor.insertRow([X, Y, Z, Z])
 
 # === WYWOŁYWANIE FUNKCJI ===
 
@@ -86,15 +89,13 @@ with open('data.txt', 'r') as f:
         line = line.strip()          # usuwa \n i ewentualne spacje na końcach
         if line:                     # pomija puste linie
             x, y, z = map(float, line.split())
-            points.append([x, y, z])
+            points.append([x+470856, y+741111, z])
 
 print(points[:50])
 
-nowa_warstwa = "Silos01"
-arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_punktowa)
+nowa_warstwa = "Silos02"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "ENABLED", warstwa_punktowa)
 arcpy.management.AddField(nowa_warstwa, "wsp_z", "FLOAT")
 wstawianie_wspolrzednych(nowa_warstwa, points, "wsp_z")
-
-
 
 print("KONIEC")
