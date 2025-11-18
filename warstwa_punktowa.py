@@ -39,41 +39,62 @@ def wstawianie_wspolrzednych(warstwa, lista_wsp, field):
 
 ## wybierzmy X punktów najbliższych do średniej wartości X i Y z zbioru punktów
 
-# Krok 1: Obliczenie środka (średnich współrzędnych)
-coordinates = odczytywanie_wspolrzednych(warstwa_punktowa)
-n = len(coordinates)
-x_mean = sum(x for x, y in coordinates) / n
-y_mean = sum(y for x, y in coordinates) / n
-center = (x_mean, y_mean)
+# # Krok 1: Obliczenie środka (średnich współrzędnych)
+# coordinates = odczytywanie_wspolrzednych(warstwa_punktowa)
+# n = len(coordinates)
+# x_mean = sum(x for x, y in coordinates) / n
+# y_mean = sum(y for x, y in coordinates) / n
+# center = (x_mean, y_mean)
 
-print(f"Środek: ({x_mean:.3f}, {y_mean:.3f})")
+# print(f"Środek: ({x_mean:.3f}, {y_mean:.3f})")
 
-# Krok 2: Obliczenie odległości każdego punktu do środka + sortowanie
-def distance_to_center(point: Tuple[float, float]) -> float:
-    x, y = point
-    return math.sqrt((x - x_mean)**2 + (y - y_mean)**2)
+# # Krok 2: Obliczenie odległości każdego punktu do środka + sortowanie
+# def distance_to_center(point: Tuple[float, float]) -> float:
+#     x, y = point
+#     return math.sqrt((x - x_mean)**2 + (y - y_mean)**2)
 
-# Dodajemy odległość jako trzeci element, żeby później łatwo sortować
-points_with_dist = [(x, y, distance_to_center((x, y))) for x, y in coordinates]
+# # Dodajemy odległość jako trzeci element, żeby później łatwo sortować
+# points_with_dist = [(x, y, distance_to_center((x, y))) for x, y in coordinates]
 
-# Sortujemy po odległości (rosnąco)
-points_with_dist.sort(key=lambda p: p[2])
+# # Sortujemy po odległości (rosnąco)
+# points_with_dist.sort(key=lambda p: p[2])
 
-# Krok 3: Wybierz ile chcesz najbliższych punktów, np. 150
-k = 150  # zmień na ile potrzebujesz
-nearest_points = points_with_dist[:k]
+# # Krok 3: Wybierz ile chcesz najbliższych punktów, np. 150
+# k = 150  # zmień na ile potrzebujesz
+# nearest_points = points_with_dist[:k]
 
-# # Jeśli chcesz tylko same współrzędne (bez odległości):
-# nearest_coordinates = [(x, y) for x, y, dist in nearest_points]
+# # # Jeśli chcesz tylko same współrzędne (bez odległości):
+# # nearest_coordinates = [(x, y) for x, y, dist in nearest_points]
 
-# Opcjonalnie: wypisz wyniki z odległościami
-print(f"\n{k} punktów najbliższych do środka:")
-for i, (x, y, dist) in enumerate(nearest_points, 1):
-    print(f"{i:3}. ({x:.2f}, {y:.2f}) → odległość: {dist:.2f} m")
+# # Opcjonalnie: wypisz wyniki z odległościami
+# print(f"\n{k} punktów najbliższych do środka:")
+# for i, (x, y, dist) in enumerate(nearest_points, 1):
+#     print(f"{i:3}. ({x:.2f}, {y:.2f}) → odległość: {dist:.2f} m")
 
-nowa_warstwa = "GDA2020_OT_OIPR_P_150dist"
+# nowa_warstwa = "GDA2020_OT_OIPR_P_150dist"
+# arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_punktowa)
+# arcpy.management.AddField(nowa_warstwa, "dist", "FLOAT")
+# wstawianie_wspolrzednych(nowa_warstwa, nearest_points, "dist")
+
+### Konwersja danych z txt do warstwy wektorowej punktowej
+
+
+# wczytuje plik i od razu tworzy listę [[x, y, z], ...]
+with open('data.txt', 'r') as f:
+    points = []
+    for line in f:
+        line = line.strip()          # usuwa \n i ewentualne spacje na końcach
+        if line:                     # pomija puste linie
+            x, y, z = map(float, line.split())
+            points.append([x, y, z])
+
+print(points[:50])
+
+nowa_warstwa = "Silos01"
 arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_punktowa)
-arcpy.management.AddField(nowa_warstwa, "dist", "FLOAT")
-wstawianie_wspolrzednych(nowa_warstwa, nearest_points, "dist")
+arcpy.management.AddField(nowa_warstwa, "wsp_z", "FLOAT")
+wstawianie_wspolrzednych(nowa_warstwa, points, "wsp_z")
+
+
 
 print("KONIEC")
