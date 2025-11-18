@@ -22,8 +22,8 @@ def aktualizowanie_wspolrzednych(warstwa):
             row[1] += 100
             cursor.updateRow(row)
 
-def wstawianie_wspolrzednych(warstwa, lista_wsp):
-    with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y']) as cursor:
+def wstawianie_wspolrzednych(warstwa, lista_wsp, field):
+    with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y', field]) as cursor:
         for wsp in lista_wsp:
             cursor.insertRow(wsp)
 
@@ -71,5 +71,9 @@ print(f"\n{k} punktów najbliższych do środka:")
 for i, (x, y, dist) in enumerate(nearest_points, 1):
     print(f"{i:3}. ({x:.2f}, {y:.2f}) → odległość: {dist:.2f} m")
 
+nowa_warstwa = "GDA2020_OT_OIPR_P_150dist"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_punktowa)
+arcpy.management.AddField(nowa_warstwa, "dist", "FLOAT")
+wstawianie_wspolrzednych(nowa_warstwa, nearest_points, "dist")
 
 print("KONIEC")
