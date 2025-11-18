@@ -36,6 +36,37 @@ Porównanie warstw `OT_PT` z lat 2014 i 2020, wykrycie zmian klas pokrycia teren
 
 ---
 
+## Skrypts: `warstwa_punktowa.py`
+### Przetwarzanie chmury punktów 3D (LiDAR) – analiza i generalizacja pionowa silosu
+
+**Cel:**  
+Automatyczne przetworzenie pełnej chmury punktów 3D (plik tekstowy `.txt`) reprezentującej skanowanie silosu zbożowego, a następnie wygenerowanie uogólnionej warstwy punktowej zawierającej średnie współrzędne XY dla kolejnych poziomów wysokościowych (co 2 metry).
+
+**Główne funkcjonalności:**
+
+- Wczytywanie współrzędnych X, Y, Z z pliku tekstowego (`data.txt`)
+- Przesunięcie współrzędnych do lokalnego układu (dodanie offsetu +470856 / +741111)
+- Grupowanie punktów w poziome warstwy wysokościowe co **2 metry**
+- Obliczenie średnich współrzędnych X i Y dla każdego przedziału wysokościowego
+- Zapis średniego punktu (X_śr, Y_śr, Z_środek_przedziału) do nowej warstwy punktowej w geobazie
+- Dodanie atrybutu `wsp_z` zawierającego wysokość środka przedziału
+
+**Dodatkowe funkcje pomocnicze (zakomentowane w kodzie):**
+- Odczytywanie współrzędnych z istniejącej warstwy punktowej
+- Przesunięcie wszystkich punktów o stałą wartość (+100 m w X i Y)
+- Tworzenie podzbioru N najbliższych punktów do geometrycznego środka chmury
+- Eksport wybranej liczby punktów (np. 150 pierwszych lub 150 najbliższych środka)
+
+**Wynik końcowy:**
+Warstwa punktowa `Silos04` (lub inna nazwa podana w zmiennej `nowa_warstwa`) zawierająca po jednym punkcie na każdy 2-metrowy poziom wysokości silosu – idealna do dalszej analizy przekroju pionowego, modelowania 3D lub wizualizacji warstw materiału.
+
+**Przykładowe zastosowanie:**
+- Ocena kształtu i objętości zasypu zboża w silosie
+- Wykrywanie deformacji ścian
+- Tworzenie uproszczonego modelu 3D silosu na podstawie skanów LiDAR
+
+---
+
 ## Wymagania
 
 | Narzędzie | Wersja |

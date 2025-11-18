@@ -167,10 +167,10 @@ for r in result:
 average_points = [[r['avg_x'], r['avg_y'], r['z_mid']] for r in result]
 print("\nLista średnich punktów:", average_points)
 
-nowa_warstwa = "Silos03"
+nowa_warstwa = "Silos04"
 arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "ENABLED", warstwa_punktowa)
 arcpy.management.AddField(nowa_warstwa, "wsp_z", "FLOAT")
-wstawianie_wspolrzednych(nowa_warstwa, points, "wsp_z")
+wstawianie_wspolrzednych(nowa_warstwa, average_points, "wsp_z")
 
 
 
