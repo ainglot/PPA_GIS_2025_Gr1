@@ -36,7 +36,7 @@ Porównanie warstw `OT_PT` z lat 2014 i 2020, wykrycie zmian klas pokrycia teren
 
 ---
 
-## Skrypts: `warstwa_punktowa.py`
+## Skrypts 3: `warstwa_punktowa.py`
 ### Przetwarzanie chmury punktów 3D (LiDAR) – analiza i generalizacja pionowa silosu
 
 **Cel:**  
