@@ -18,7 +18,7 @@ def odczytywanie_wspolrzednych(warstwa):
             lista_ob.append(lista_wsp)
     return lista_ob
 
-def wstawianie_wspolrzednych(warstwa, lista_ob):
+def wstawianie_wspolrzednych_linie(warstwa, lista_ob):
     with arcpy.da.InsertCursor(warstwa, ['SHAPE@']) as cursor:
         pnt = arcpy.Point()
         array = arcpy.Array()
@@ -31,11 +31,18 @@ def wstawianie_wspolrzednych(warstwa, lista_ob):
             array.removeAll()
             cursor.insertRow([poly])
 
-lista_wsp = odczytywanie_wspolrzednych(warstwa_liniowa)
-print(lista_wsp[:2])
-print(len(lista_wsp), len(lista_wsp[0]))
+def wstawianie_wspolrzednych_punkty(warstwa, lista_wsp):
+    with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y']) as cursor:
+        for wsp in lista_wsp:
+            X = wsp[0]
+            Y = wsp[1]
+            cursor.insertRow([X, Y])
 
-simplified_lines = [[line[0], line[-1]] for line in lista_wsp]
+# lista_wsp = odczytywanie_wspolrzednych(warstwa_liniowa)
+# print(lista_wsp[:2])
+# print(len(lista_wsp), len(lista_wsp[0]))
+
+# simplified_lines = [[line[0], line[-1]] for line in lista_wsp]
 
 # nowa_warstwa = "Linie_SWRS_02"
 # arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POLYLINE", "", "DISABLED", "DISABLED", warstwa_liniowa)
@@ -60,13 +67,20 @@ verts_2014 = extract_all_vertices(lista_2014)
 verts_2020 = extract_all_vertices(lista_2020)
 
 # Różnice
-only_in_2014 = verts_2014 - verts_2020   # zniknęły w 2020
-only_in_2020 = verts_2020 - verts_2014   # pojawiły się w 2020
+only_in_2014 = list(verts_2014 - verts_2020)   # zniknęły w 2020
+only_in_2020 = list(verts_2020 - verts_2014)   # pojawiły się w 2020
 
 print(f"Zniknęło (były w 2014, nie ma w 2020): {len(only_in_2014)} punktów")
 print(f"Pojawiło się (nie było w 2014, jest w 2020): {len(only_in_2020)} punktów")
 
+print(only_in_2014[:5])
 
+nowa_warstwa = "Punkty_2014_01"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_2020)
+wstawianie_wspolrzednych_punkty(nowa_warstwa, only_in_2014)
+nowa_warstwa = "Punkty_2020_01"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_2020)
+wstawianie_wspolrzednych_punkty(nowa_warstwa, only_in_2020)
 
 
 print("KONIEC")
