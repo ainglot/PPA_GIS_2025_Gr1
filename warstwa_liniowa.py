@@ -17,19 +17,25 @@ def odczytywanie_wspolrzednych(warstwa):
             lista_ob.append(lista_wsp)
     return lista_ob
 
-# def wstawianie_wspolrzednych(warstwa, lista_wsp):
-#     with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y']) as cursor:
-#         for wsp in lista_wsp:
-#             X = wsp[0]
-#             Y = wsp[1]
-#             cursor.insertRow([X, Y])
+def wstawianie_wspolrzednych(warstwa, lista_ob):
+    with arcpy.da.InsertCursor(warstwa, ['SHAPE@']) as cursor:
+        pnt = arcpy.Point()
+        array = arcpy.Array()
+        for ob in lista_ob:
+            for pkt in ob:
+                pnt.X = pkt[0]
+                pnt.Y = pkt[1]
+                array.add(pnt)
+            poly = arcpy.Polyline(array)
+            array.removeAll()
+            cursor.insertRow([poly])
 
 lista_wsp = odczytywanie_wspolrzednych(warstwa_liniowa)
 # print(lista_wsp)
 print(len(lista_wsp), len(lista_wsp[0]))
 
-# nowa_warstwa = "Centroidy_SWRS_01"
-# arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_liniowa)
-# wstawianie_wspolrzednych(nowa_warstwa, lista_wsp)
+nowa_warstwa = "Linie_SWRS_01"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POLYLINE", "", "DISABLED", "DISABLED", warstwa_liniowa)
+wstawianie_wspolrzednych(nowa_warstwa, lista_wsp[:15])
 
 print("KONIEC")
