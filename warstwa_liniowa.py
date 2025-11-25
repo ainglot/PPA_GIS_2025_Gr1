@@ -13,6 +13,19 @@ def odczytywanie_wspolrzednych(warstwa):
             lista_wsp.append(row)
     return lista_wsp
 
+def wstawianie_wspolrzednych(warstwa, lista_wsp):
+    with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y']) as cursor:
+        for wsp in lista_wsp:
+            X = wsp[0]
+            Y = wsp[1]
+            cursor.insertRow([X, Y])
+
 lista_wsp = odczytywanie_wspolrzednych(warstwa_liniowa)
+print(lista_wsp)
+print(len(lista_wsp))
+
+nowa_warstwa = "Centroidy_SWRS_01"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "DISABLED", warstwa_liniowa)
+wstawianie_wspolrzednych(nowa_warstwa, lista_wsp)
 
 print("KONIEC")
