@@ -31,11 +31,13 @@ def wstawianie_wspolrzednych(warstwa, lista_ob):
             cursor.insertRow([poly])
 
 lista_wsp = odczytywanie_wspolrzednych(warstwa_liniowa)
-# print(lista_wsp)
+print(lista_wsp[:2])
 print(len(lista_wsp), len(lista_wsp[0]))
 
-nowa_warstwa = "Linie_SWRS_01"
+simplified_lines = [[line[0], line[-1]] for line in lista_wsp]
+
+nowa_warstwa = "Linie_SWRS_02"
 arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POLYLINE", "", "DISABLED", "DISABLED", warstwa_liniowa)
-wstawianie_wspolrzednych(nowa_warstwa, lista_wsp[:15])
+wstawianie_wspolrzednych(nowa_warstwa, simplified_lines)
 
 print("KONIEC")
