@@ -28,7 +28,25 @@ def odczytywanie_wspolrzednych_poligonu(warstwa):
 listaPOLIGON = odczytywanie_wspolrzednych_poligonu(warstwa_poligonowa)
 print(listaPOLIGON)
 
+def wstawianie_wspolrzednych_poligonu(warstwa, lista_ob):
+    with arcpy.da.InsertCursor(warstwa, ['SHAPE@']) as cursor:
+        pnt = arcpy.Point()
+        array = arcpy.Array()
+        part = arcpy.Array()
+        for ob in lista_ob:
+            for cze in ob:
+                for pkt in cze:
+                    pnt.X = pkt[0]
+                    pnt.Y = pkt[1]
+                    part.add(pnt)
+                array.add(part)
+                part.removeAll()
+            poly = arcpy.Polygon(array)
+            array.removeAll()
+            cursor.insertRow([poly])
 
-
+Nowe_budynki = "Budynek01"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, Nowe_budynki, "POLYGON", "", "DISABLED", "DISABLED", warstwa_poligonowa)
+wstawianie_wspolrzednych_poligonu(Nowe_budynki, listaPOLIGON)
 
 print("KONIEC")
