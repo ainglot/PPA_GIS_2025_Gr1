@@ -3,7 +3,7 @@ import arcpy
 
 # === USTAWIENIA ŚRODOWISKA ===
 arcpy.env.workspace = r"D:\GIS\Rok_2025_26\PPA_ArcGIS\PPA_Gr1.gdb"
-warstwa_poligonowa = "Budynek"
+warstwa_poligonowa = "Budynki"
 
 # === FUNKCJE DLA WARSTWY PUNKTOWEJ ===
 ### [Poligon1[granica[pkt1[x1, y1], [x2, y2]...], dziure[pkt1[x1, y1]...], Poligon2[...], ...]
@@ -23,7 +23,7 @@ def odczytywanie_wspolrzednych_poligonu(warstwa):
                     else:
                         lista_part.append(lista_wsp)
                         lista_wsp = []
-                # lista_part.append(lista_wsp)
+                lista_part.append(lista_wsp)
             lista_ob.append(lista_part)
     return lista_ob, lista_centr
 
@@ -56,7 +56,7 @@ for ob in listaPOLIGON:
     i += 1
 
 
-Nowe_budynki = "Budynek03"
+Nowe_budynki = "Bydynki01"
 arcpy.management.CreateFeatureclass(arcpy.env.workspace, Nowe_budynki, "POLYGON", "", "DISABLED", "DISABLED", warstwa_poligonowa)
 wstawianie_wspolrzednych_poligonu(Nowe_budynki, listaPOLIGON)
 
