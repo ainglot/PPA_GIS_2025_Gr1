@@ -7,15 +7,19 @@ warstwa_poligonowa = "Budynki"
 
 geometries = arcpy.management.CopyFeatures(warstwa_poligonowa, arcpy.Geometry())
 
+Otoczka = []
 i = 0
 for geo1 in geometries:
     j = 0
     for geo2 in geometries:
         if i < j:
-            print(i, j, geo1.touches(geo2))
+            if geo1.touches(geo2):
+                print(i, j, geo1.touches(geo2))
+                Otoczka.append(geo1.intersect(geo2, 2))
         j += 1
     i += 1
-
+warstwa_wyjsciowa = "Budynki_intersect_04"
+arcpy.management.CopyFeatures(Otoczka, warstwa_wyjsciowa)
 
 # Otoczka = []
 # for geo in geometries:
