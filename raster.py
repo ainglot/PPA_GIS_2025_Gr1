@@ -20,84 +20,42 @@ print(f"Zakres rastra: X: {R.extent.XMin} - {R.extent.XMax}, Y: {R.extent.YMin} 
 # === PARAMETRY RASTRA ===
 lower_left = arcpy.Point(R.extent.XMin, R.extent.YMin)   # lewy dolny róg
 cell_size = R.meanCellWidth                              # zakładamy kwadratowe komórki
-nodata_val = 0  # w Twoim pliku ASC NoData to zazwyczaj -9999 albo inna wartość – sprawdź!
+nodata_val = np.nan  # w Twoim pliku ASC NoData to zazwyczaj -9999 albo inna wartość – sprawdź!
 
 # === KONWERSJA DO NUMPY ===
 # Używamy nodata_to_value tylko jeśli naprawdę chcesz zamienić NoData na 0
 # Lepiej zachować oryginalne NoData, więc najczęściej wystarczy:
-R_array = arcpy.RasterToNumPyArray(R)  # bez parametru nodata_to_value
+R_array = arcpy.RasterToNumPyArray(R, nodata_to_value = nodata_val)  # bez parametru nodata_to_value
 
-# Jeśli w Twoim ASC NoData to np. -9999, a chcesz je wykluczyć z min/max:
-# R_array = arcpy.RasterToNumPyArray(R, nodata_to_value=np.nan)  # wtedy nan nie będzie brany pod uwagę
+# === MIN i MAX z ignorowaniem np.nan ===
+min_val = np.nanmin(R_array)
+max_val = np.nanmax(R_array)
 
-# === ZNAJDOWANIE POZYCJI MIN I MAX ===
-# Maskujemy ewentualne NoData (jeśli występują jako bardzo niskie wartości)
-masked_array = np.ma.masked_equal(R_array, R.noDataValue)  # poprawnie maskuje NoData
+# Pozycje (wiersz, kolumna) – liczone od lewego GÓRNEGO rogu!
+min_row, min_col = np.unravel_index(np.nanargmin(R_array), R_array.shape)
+max_row, max_col = np.unravel_index(np.nanargmax(R_array), R_array.shape)
 
-min_val = float(masked_array.min())
-max_val = float(masked_array.max())
-
-# Współrzędne indeksów (wiersz, kolumna)
-min_idx = np.unravel_index(np.argmin(masked_array), R_array.shape)  # (wiersz, kolumna)
-max_idx = np.unravel_index(np.argmax(masked_array), R_array.shape)  # (wiersz, kolumna)
-
-# Przeliczenie indeksów [wiersz, kolumna] na współrzędne X, Y (środek komórki!)
-def cell_to_coord(row, col, lower_left_corner, cell_size):
-    x = lower_left_corner.X + col * cell_size + cell_size / 2
-    y = lower_left_corner.Y + (R_array.shape[0] - 1 - row) * cell_size + cell_size / 2
-    # ^ odwracamy wiersz, bo NumPy ma początek w lewym GÓRNYM rogu
+# === Przeliczenie indeksów na współrzędne X,Y (środek komórki) ===
+def array_to_xy(row, col, lower_left_corner, cell_size, rows_total):
+    x = lower_left_corner.X + col * cell_size + cell_size / 2.0
+    # Odwracamy wiersz: NumPy zaczyna od góry, raster od dołu
+    y = lower_left_corner.Y + (rows_total - 1 - row) * cell_size + cell_size / 2.0
     return x, y
 
-min_x, min_y = cell_to_coord(min_idx[0], min_idx[1], lower_left, cell_size)
-max_x, max_y = cell_to_coord(max_idx[0], max_idx[1], lower_left, cell_size)
+rows_total = R_array.shape[0]
+
+min_x, min_y = array_to_xy(min_row, min_col, lower_left, cell_size, rows_total)
+max_x, max_y = array_to_xy(max_row, max_col, lower_left, cell_size, rows_total)
 
 # === WYNIK ===
-print("\n" + "="*60)
+print("\n" + "="*65)
 print(f"MINIMUM: {min_val:.3f} m n.p.m.")
-print(f"   położenie: X = {min_x:.3f}, Y = {min_y:.3f} (układ 2180)")
-print(f"   indeks w tablicy: wiersz {min_idx[0]}, kolumna {min_idx[1]}")
+print(f"   → X = {min_x:.3f}, Y = {min_y:.3f} (układ 2180)")
+print(f"   → wiersz: {min_row}, kolumna: {min_col}")
 
 print(f"MAKSYMUM: {max_val:.3f} m n.p.m.")
-print(f"   położenie: X = {max_x:.3f}, Y = {max_y:.3f} (układ 2180)")
-print(f"   indeks w tablicy: wiersz {max_idx[0]}, kolumna {max_idx[1]}")
-print("="*60)
-
-# === OPCJONALNIE: zapisanie punktów min i max jako shapefile ===
-point_fc = "MinMax_Punkty.shp"
-if arcpy.Exists(point_fc):
-    arcpy.Delete_management(point_fc)
-
-# Tworzymy punkty
-points = arcpy.Array([
-    arcpy.Point(min_x, min_y),
-    arcpy.Point(max_x, max_y)
-])
-
-point_geometry = [
-    arcpy.PointGeometry(p, arcpy.SpatialReference(2180)) for p in points
-]
-
-arcpy.CopyFeatures_management(point_geometry, point_fc)
-
-# Dodajemy atrybuty
-arcpy.AddField_management(point_fc, "Typ", "TEXT", field_length=10)
-arcpy.AddField_management(point_fc, "Wartosc", "DOUBLE")
-
-with arcpy.da.UpdateCursor(point_fc, ["Typ", "Wartosc", "SHAPE@XY"]) as cur:
-    for i, row in enumerate(cur):
-        if i == 0:
-            row[0] = "Minimum"
-            row[1] = min_val
-        else:
-            row[0] = "Maksimum"
-            row[1] = max_val
-        cur.updateRow(row)
-
-print(f"Punkty min i max zapisane do: {point_fc}")
-
-# === Przykład modyfikacji rastra (jeśli nadal chcesz) ===
-# R_array[100:200, 100:500] = 100
-# outR = arcpy.NumPyArrayToRaster(R_array, lower_left, cell_size, value_to_nodata=R.noDataValue)
-# outR.save("NowyRaster03.tif")
+print(f"   → X = {max_x:.3f}, Y = {max_y:.3f} (układ 2180)")
+print(f"   → wiersz: {max_row}, kolumna: {max_col}")
+print("="*65)
 
 print("\nKONIEC – wszystko poszło dobrze!")
