@@ -13,7 +13,7 @@ arcpy.env.outputCoordinateSystem = arcpy.SpatialReference(2180)
 R = arcpy.Raster(RasterIn)
 
 print(f"Raster wczytany: {RasterIn}")
-print(f"Minimum: {R.minimum:.3f}, Maximum: {R.maximum:.3f}")
+print(f"Minimum z rastra: {R.minimum:.3f}, Maximum: {R.maximum:.3f}")
 print(f"Rozdzielczość: {R.meanCellWidth} x {R.meanCellHeight}")
 print(f"Zakres rastra: X: {R.extent.XMin} - {R.extent.XMax}, Y: {R.extent.YMin} - {R.extent.YMax}")
 
@@ -26,6 +26,7 @@ nodata_val = np.nan  # w Twoim pliku ASC NoData to zazwyczaj -9999 albo inna war
 # Używamy nodata_to_value tylko jeśli naprawdę chcesz zamienić NoData na 0
 # Lepiej zachować oryginalne NoData, więc najczęściej wystarczy:
 R_array = arcpy.RasterToNumPyArray(R, nodata_to_value = nodata_val)  # bez parametru nodata_to_value
+print(f"Minimum z numpy: {np.min(R_array)}, Maximum: {np.max(R_array)}")
 
 # === MIN i MAX z ignorowaniem np.nan ===
 min_val = np.nanmin(R_array)
@@ -57,5 +58,25 @@ print(f"MAKSYMUM: {max_val:.3f} m n.p.m.")
 print(f"   → X = {max_x:.3f}, Y = {max_y:.3f} (układ 2180)")
 print(f"   → wiersz: {max_row}, kolumna: {max_col}")
 print("="*65)
+
+def wstawianie_wspolrzednych(warstwa, lista_wsp, field):
+    with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y', 'SHAPE@Z', field]) as cursor:
+        for wsp in lista_wsp:
+            X = wsp[0]
+            Y = wsp[1]
+            Z = wsp[2]
+            cursor.insertRow([X, Y, Z, Z])
+
+arcpy.env.workspace = r"D:\GIS\Rok_2025_26\PPA_ArcGIS\PPA_Gr1.gdb"
+
+points = [[min_x, min_y, min_val], [max_x, max_y, max_val]]
+nowa_warstwa = "MinMax_rastra"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "ENABLED", 2180)
+arcpy.management.AddField(nowa_warstwa, "wsp_z", "FLOAT")
+wstawianie_wspolrzednych(nowa_warstwa, points, "wsp_z")
+
+
+
+
 
 print("\nKONIEC – wszystko poszło dobrze!")
