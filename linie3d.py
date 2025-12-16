@@ -17,6 +17,11 @@ def odczytywanie_wspolrzednych(warstwa):
             lista_ob.append(lista_wsp)
     return lista_ob
 
+def punkt_na_rastrze(punkt, zakres_rastra):
+    x, y = punkt
+    xmin, ymin, xmax, ymax = zakres_rastra
+
+    return xmin <= x <= xmax and ymin <= y <= ymax
 
 Wsp_Linie = odczytywanie_wspolrzednych(warstwa_liniowa)
 # print(Wsp_Linie)
@@ -28,7 +33,14 @@ listR = []
 for raster in rasters:
     print(raster)
     R = arcpy.Raster(raster)
-    listR.append([raster, [R.extent.XMin, R.extent.YMin, R.extent.XMiax, R.extent.YMax]])
-print(listR)
+    listR.append([raster, [R.extent.XMin, R.extent.YMin, R.extent.XMax, R.extent.YMax]])
+# print(listR)
+
+PKT = [473592., 721195.]
+
+for ras in listR:
+    print(ras, punkt_na_rastrze(PKT, ras[1]))
+
+
 
 print("KONIEC")
