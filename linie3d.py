@@ -24,6 +24,14 @@ def punkt_na_rastrze(punkt, zakres_rastra):
 
     return xmin <= x <= xmax and ymin <= y <= ymax
 
+def wstawianie_wspolrzednych(warstwa, lista_wsp, field):
+    with arcpy.da.InsertCursor(warstwa, ['SHAPE@X', 'SHAPE@Y', 'SHAPE@Z', field]) as cursor:
+        for wsp in lista_wsp:
+            X = wsp[0]
+            Y = wsp[1]
+            Z = wsp[2]
+            cursor.insertRow([X, Y, Z, Z])
+
 Wsp_Linie = odczytywanie_wspolrzednych(warstwa_liniowa)
 # print(Wsp_Linie)
 
@@ -40,6 +48,7 @@ for raster in rasters:
 PKT = [473593., 721194.]
 PKT = [474432.81, 718876.37] #45.669998
 
+listaWSP = []
 for ras in listR:
     if punkt_na_rastrze(PKT, ras[1]):
         R = arcpy.Raster(ras[0])
@@ -54,7 +63,12 @@ for ras in listR:
         row = int(dy)
         col = int(dx)
         print(dx, dy, row, col, R_array[row, col])
+        if not np.isnan(R_array[row, col]):
+            listaWSP.append([PKT[0], PKT[1], R_array[row, col]])
 
-
+nowa_warstwa = "PunktyNaRastrze01"
+arcpy.env.workspace = r"D:\GIS\Rok_2025_26\PPA_ArcGIS\Geobaza ZTM\ZTM197.gdb"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "ENABLED", warstwa_liniowa)
+wstawianie_wspolrzednych(nowa_warstwa, listaWSP)
 
 print("KONIEC")
