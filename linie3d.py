@@ -39,7 +39,12 @@ for raster in rasters:
 PKT = [473592., 721195.]
 
 for ras in listR:
-    print(ras, punkt_na_rastrze(PKT, ras[1]))
+    if punkt_na_rastrze(PKT, ras[1]):
+        XMIN = ras[1][0]
+        YMAX = ras[1][3]
+        dx = PKT[0] - XMIN
+        dy = YMAX - PKT[1]
+        print(dx, dy)
 
 
 
