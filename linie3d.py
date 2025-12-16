@@ -66,9 +66,10 @@ for ras in listR:
         if not np.isnan(R_array[row, col]):
             listaWSP.append([PKT[0], PKT[1], R_array[row, col]])
 
-nowa_warstwa = "PunktyNaRastrze01"
+nowa_warstwa = "PunktyNaRastrze02"
 arcpy.env.workspace = r"D:\GIS\Rok_2025_26\PPA_ArcGIS\Geobaza ZTM\ZTM197.gdb"
 arcpy.management.CreateFeatureclass(arcpy.env.workspace, nowa_warstwa, "POINT", "", "DISABLED", "ENABLED", warstwa_liniowa)
-wstawianie_wspolrzednych(nowa_warstwa, listaWSP)
+arcpy.management.AddField(nowa_warstwa, "wsp_z", "FLOAT")
+wstawianie_wspolrzednych(nowa_warstwa, listaWSP, "wsp_z")
 
 print("KONIEC")
