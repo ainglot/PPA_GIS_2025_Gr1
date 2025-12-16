@@ -36,15 +36,22 @@ for raster in rasters:
     listR.append([raster, [R.extent.XMin, R.extent.YMin, R.extent.XMax, R.extent.YMax]])
 # print(listR)
 
-PKT = [473592., 721195.]
+PKT = [473593., 721194.]
+PKT = [474432.81, 718876.37] #45.669998
 
 for ras in listR:
     if punkt_na_rastrze(PKT, ras[1]):
+        R = arcpy.Raster(ras[0])
         XMIN = ras[1][0]
         YMAX = ras[1][3]
-        dx = PKT[0] - XMIN
-        dy = YMAX - PKT[1]
-        print(dx, dy)
+        CellSIZE = R.meanCellWidth
+
+        dx = (PKT[0] - XMIN) * CellSIZE
+        dy = (YMAX - PKT[1]) * CellSIZE
+
+        row = int(dy)
+        col = int(dx)
+        print(dx, dy, row, col)
 
 
 
