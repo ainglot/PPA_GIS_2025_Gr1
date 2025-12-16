@@ -1,4 +1,5 @@
 import arcpy
+import numpy as np
 
 
 # === USTAWIENIA ŚRODOWISKA ===
@@ -42,6 +43,7 @@ PKT = [474432.81, 718876.37] #45.669998
 for ras in listR:
     if punkt_na_rastrze(PKT, ras[1]):
         R = arcpy.Raster(ras[0])
+        R_array = arcpy.RasterToNumPyArray(R, nodata_to_value = np.nan) 
         XMIN = ras[1][0]
         YMAX = ras[1][3]
         CellSIZE = R.meanCellWidth
@@ -51,7 +53,7 @@ for ras in listR:
 
         row = int(dy)
         col = int(dx)
-        print(dx, dy, row, col)
+        print(dx, dy, row, col, R_array[row, col])
 
 
 
